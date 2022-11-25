@@ -1,0 +1,34 @@
+	IN 10H		;remove memory protection
+       LXI B,01F4H 	;01F4H = 500
+	MVI A,01H 	;lightByte is 01H
+	CMA		;A complement(LED's are negative logic)
+	STA 3000H	;light the LSB of the output byte
+	CMA		;A complement
+	MOV D,A 	;now D has the lightByte
+INPUT:	
+	LDA 2000H 	;read input
+	ANI 01H 	;mask the LSB
+	JZ INPUT 	;if LSB 0 -->INPUT	
+	CALL DELB 	;delay 0.5s
+	LDA 2000H 	;read input 
+	ANI 80H 	;mask the MSB
+	JNZ RIGHT 	;if MSB 1-->RIGHT
+
+LEFT:
+	MOV A,D 	;return the lightByte in A
+	RLC		;rotate bits of lightByte left by one
+	CMA		;A complement
+	STA 3000H	;light the next bit of the output
+	CMA		;A complement
+	MOV D,A 	;save the lightByte in D
+	JMP INPUT	;repeat
+	
+RIGHT: 
+	MOV A,D 	;return the lightByte in A
+	RRC		;rotate bits of lightByte right by one
+	CMA		;A complement
+	STA 3000H	;light next bit of the output
+	CMA		;A complement
+	MOV D,A 	;save the lightByte in D
+	JMP INPUT	;repeat
+END

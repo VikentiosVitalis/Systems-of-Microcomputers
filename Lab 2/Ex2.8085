@@ -1,0 +1,58 @@
+	MVI A,FFH
+	STA 3000H
+	MVI D,64H		; 100 Decimal = 64 Hex and 100 * 0,2 = 20 sec 
+	LXI B,0064H		; 1/10 sec = 100 msec
+BEGIN:, de
+	LDA 2000H		; Diabasma diakoptwn 
+	ANI 80H	       ; MSB 
+	CPI 00H 		; Is the switch off; 
+	JZ  TURNEDOFF1
+	JMP BEGIN
+TURNEDOFF1:			; Switch first off	
+	LDA 2000H
+	ANI 80H
+	CPI 80H		; Is the switch on?
+	JZ  TURNEDON1
+	JMP TURNEDOFF1
+TURNEDON1:			; Switch first On	
+	LDA 2000H
+	ANI 80H
+	CPI 00H 		; Is the switch off?
+	JZ  TURNEDOFF2
+	JMP TURNEDON1
+TURNEDOFF2:			; The shiwtch was turned off
+	LDA 2000H
+	ANI 80H
+	CPI 80H		; Is the switch on; 
+	JZ  TURNEDON2
+	MVI A,00H		; Turn on the switches
+	STA 3000H		;
+	CALL DELB
+	DCR D 			; Time
+	MOV A,D
+	CPI 00H 		; Did the time pass?
+	JNZ TURNEDOFF2	; Check if the time has passed	
+	MVI A,FFH		; Light off
+	STA 3000H		
+	MVI D,64H		; Restart timer
+	JMP TURNEDOFF1
+TURNEDON2:				
+	LDA 2000H
+	ANI 80H
+	CPI 00H 		; Is the switch off?
+	JZ  AGAIN		; Check restart of the timer
+	MVI A,00H	       
+	STA 3000H
+	CALL DELB
+	DCR D
+	MOV A,D
+	CPI 00H
+	JNZ TURNEDON2
+	MVI A,FFH
+	STA 3000H
+	MVI D,64H		; Restart timer
+	JMP TURNEDOFF1
+AGAIN:
+	MVI D,64H		; Restart timer
+	JMP TURNEDOFF2
+	END

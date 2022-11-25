@@ -1,0 +1,52 @@
+;Example: 
+;67 57 47 37 27 17 7 -3 7
+;   0  1  2  3  4  5  6
+
+	LXI B,01F4H
+	MVI H,0FH
+	MVI L,F0H
+START:
+	CALL DELB
+	LDA 2000H 
+	CPI 64H 
+	JNC GREATER_EQUAL_100 
+	MVI D,FFH
+DECA:
+	INR D ;Counting dekades
+	SUI 0AH ;Substract 10
+	JNC DECA ; CY = 1 -> Negative number, continue, otherwise repeat.
+	ADI 0AH ; Monades ston A register
+	MOV E,A 
+	MOV A,D 
+	RLC  ; Left shift 4 times
+	RLC
+	RLC
+	RLC
+	ADD E 
+	CMA  ;Complement A
+	STA 3000H ;Show the result on switches
+	JMP START
+GREATER_EQUAL_100:
+	CPI C8H
+	JNC GREATER_EQUAL_200
+LOOPM:
+	MOV A,H
+	ANI 0FH ;Masking A, holding the 4 LSB digits for blink, setting 4 MSB's to zero.
+	CMA	;Complement A
+	STA 3000H ;Show the result on switches
+	CALL DELB ; Delay
+	MOV H,A
+	JMP START ; Repeat for next number
+
+GREATER_EQUAL_200:
+	MOV A,H
+	ANI F0H ;Masking A, holding the 4 MSB digits for blink, setting 4 LSB's to zero.
+	CMA	;Complement A
+	STA 3000H ;Show the result on switches
+	CALL DELB ; Delay
+	MOV H,A
+	JMP START ; Repeat for next number
+
+END
+
+

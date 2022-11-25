@@ -1,0 +1,41 @@
+	IN 10H
+	MVI A,00H	; Numbers for A from 0 to 255
+	LXI H,0900H	; Adresses
+	LXI B,0000H	; Units
+	MVI D,00H	; Numbers 10Hex to 60Hex
+BEGIN:
+	MOV M,A	; Store in memory	
+	MOV E,A 	; Temporary storage
+	JMP ONES	
+ONESCOUNTER:
+	MOV A,E
+	JMP NUMBERS
+COUNTINGNUMBERS:
+	INX H 		; Next position in memory
+	INR A 		; Next number
+	CPI 00H 	; Is A accumulator equal to 00H? 
+	JZ FINISH 	; Check if the procedure is over
+	JMP BEGIN
+
+ONES:			; Couning units (binary ones)
+	STC	       ; CY=0
+	CMC			
+	RAR		; Bit by bit on CY	
+	JNC ONE	; Is this bit a unit?	
+	INX B
+ONE:
+	CPI 00H	  ; Is A accumulator equal to 00H? 	
+	JZ ONESCOUNTER  ; Check if the procedure is over
+	JMP ONES
+
+NUMBERS:		       ; Counting numbers 10Hex to 60Hex
+	CPI 10H
+	JC COUNTINGNUMBERS	; Is A smaller than 10H?
+	CPI 60H
+	JC NUMBER	       ; Is A smaller than 60H?
+	JNZ COUNTINGNUMBERS  ; Is A equal to 60H?
+NUMBER:
+	INR D
+	JMP COUNTINGNUMBERS
+FINISH:
+	END

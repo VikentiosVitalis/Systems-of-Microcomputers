@@ -1,0 +1,31 @@
+BEGIN:
+	LDA 2000H
+	CPI 00H
+	JZ ZERO ;for zero input print zero
+	MVI B,00H
+
+ROTATE:
+	RAR
+	INR B ;final value of the position of the rightmost 1
+	JNC ROTATE
+
+	MVI D,80H ;D is 2^7
+
+FINDPOWER:
+	MOV A,B
+	CPI 00H
+	JZ FINISH
+	DCR B ;will add powers of 2 B times
+	MOV A,D
+	RLC ;multiply D by 2 to get next power of 2
+	MOV D,A
+	JMP FINDPOWER
+
+FINISH:
+	MOV A,D
+
+ZERO:
+	CMA
+	STA 3000H
+	JMP BEGIN
+END

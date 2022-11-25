@@ -1,0 +1,72 @@
+	IN 10H
+START:	
+	LXI H,0A02H		;load HL with the start of the memory 
+	MVI M,10H		;I will store the output byte
+	INX H			;10H means print nothing
+	MVI M,10H		;We point to the block 0A02H...0A05H
+	INX H			;
+	MVI M,10H		;	
+	INX H			;0A02H to 0A05 to have code 10H, to 
+	MVI M,10H		;print nothing.
+
+				;here user gives threshold constants K1, K2
+	MVI D,5BH		;D = K1 = 5BH (USER GIVEN)
+	MVI E,7FH		;E = K2 = 7FH (USER GIVEN)
+	INR D			;for <= and >= K2
+	INR E
+	MVI A,0DH		;enable interrupts
+	SIM			;in RST 6.5
+	EI
+	
+WAIT:
+	JMP WAIT
+
+INTR_ROUTINE:
+	POP H               ;read input from keybord
+	CALL KIND		;reads keybord input
+	MOV B,A		;B has the least significant hex digit
+	CALL KIND		;reads keybord input
+				;E has the most significant hex digit
+
+	LXI H,0A00H
+	MOV M,B		;0A04H<--least significant hex digit
+	INX H		
+	MOV M,A		;0A05H<--most significant hex digit
+	
+	RLC			;compare with K1, K2 and light LED
+	RLC
+	RLC
+	RLC
+	ADD B
+	MOV B,A		;now B has the full number
+	
+	CMP D
+	JC FIRST
+	CMP E
+	JC SECOND
+	
+	MVI A,04H
+	CMA
+	STA 3000H		
+	JMP LCD
+FIRST:
+	MVI A,01H
+	CMA
+	STA 3000H		;light 1st LED
+	JMP LCD
+SECOND:
+	MVI A,02H
+	CMA
+	STA 3000H		;light 2nd LED
+	JMP LCD
+				;LCD output	
+LCD:
+	LXI D,0A00H		
+	CALL STDM
+	MVI D,5CH
+	MVI E,80H
+	EI			;enable interrupts again
+OUT:
+	CALL DCD
+	JMP OUT
+END

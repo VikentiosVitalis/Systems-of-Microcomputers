@@ -1,0 +1,94 @@
+START:	
+	IN 10H		;Epitrepei thn prosbash sthn mnhmh. 
+	LXI H,0A00H	;Oi theseis 0A00H-0A05H periexun ton 	 			
+	MVI M,10H	;kwdiko ektypwshs tu antistoixu pshfioy 	
+	INX H		;sthn othonh. Emeis thelume na emfanizume	
+	MVI M,10H	;kati mono sta 2 mesaia pshfia enw ola ta 	
+	INX H		;ypoloipa einai sbhsta kai den emfanizun kati.
+	LXI H,0A04H	;Etsi apo8hkeyoyme stis 8eseis 0A00H-0A02H kai 0A04H-0A05H	
+	MVI M,10H	;ths mnhmhs to kwdiko 10H pou shmainei ta antistoixa	 
+	INX H		;7-segments na mhn emfanizun tipota	
+	MVI M,10H
+	MVI A,0DH		
+	SIM		;Arxikopoihsh maskas diakopwn		
+	EI		;Energopoihsh diakpwn
+
+WAIT:			;Anamonh gia diakoph	
+	JMP WAIT	
+
+BCD:
+	PUSH PSW	;Routina metatrophs ari8mou twn ypoloipomenwn
+	PUSH B		;deyteroleptwn apo dekaeksadiko se dekadiko kai 
+	PUSH D		;emfanish toy sthn o8onh.
+	PUSH H			
+	MVI B,FFH 		
+	MOV A,E
+DECA:			;Fortwse to metrhth deyteroleptwn E ston A
+	INR B 		;Aykshsh kata 1 toy metrhth dekadwn ston B	
+ 	SUI 0AH 	;Meiwsh toy A kata 10 	
+	JNC DECA 	;An einai 8etikos synexise	
+	ADI 0AH 	;Dior8wsh arnhtikou ypoloipoy	
+	LXI H,0A02H   
+	MOV M,A	;Apothikeyse tis monades sth thesh 0A00H
+	INX H		
+	MOV M,B	;Apothikeyse tis dekades sth thesh 0A01H	
+	LXI D,0A00H		 
+	CALL STDM	;Fortwse sto B thn kathisterisi 25ms	
+	LXI B,0019H	;Arxikopoihsh metrhth 40 epanalhpsewn	
+	MVI A,28H		
+ONESECLOOP:		;Broxos synolikhs kathisterisis 25ms * 40 = 1sec
+	CALL DCD	;pou emfanizei sthn o8onh 	
+	CALL DELB	;thn idia timh deyteroleptwn	
+	DCR A		;gia synoliko diasthma 1 deyteroleptou
+	CPI 00H
+	JNZ ONESECLOOP		
+	POP H 		
+	POP D
+	POP B
+	POP PSW
+	RET
+
+INTR_ROUTINE:		;Routina eksyphrethshs diakophs
+	POP H		
+	MVI A,FFH	;Anapse ola ta LED(negative logic)
+	CMA		
+	STA 3000H		
+	CALL MEM_INIT
+	MVI E,3CH	;Arxikopoihsh metrhth 60 seconds	
+	EI		;Energopoihsh diakopwn
+LOOP1:			
+	CALL BCD		
+	CALL BLINKING ;Klhsh yporoutinas poy anabosbhnei ta LED
+	DCR E		;Meiwsh tu metrhth deyteroleptwn kata 1	
+	MOV A,E	;An o metrhths den einai 0, epanelabe
+	CPI 00H
+	JNZ LOOP1		
+	MVI A,00H	;Alliws sbhse ola ta LED(arnhtikh logikh)
+	CMA
+ 	STA 3000H		
+	JMP WAIT	;Alma sthn wait gia anamonh neas diakophs
+MEM_INIT:		;Routina gia apothikeysh sth thesi mnhmhs 0900H
+	PUSH H		;ths arxikhs katastashs twn LED
+	LXI H,0900H
+	MOV M,A
+	POP H
+	RET
+
+BLINKING:
+	PUSH PSW
+	PUSH B
+	PUSH D
+	PUSH H		 
+	LXI B,01F4H  ;Fortwsh ston BC ths kathisterisis 01F4H = 500ms
+	LXI H,0900H  ;Fortwsh ston HL th 8esh mnhmhs 0900H, h opoia
+	MOV A,M      ;periexei thn parousa katastash twn LED. Fortwse to 
+	CMA	      ;periexomeno ayto ston A kai ystera apo 500ms
+	CALL DELB    ;emfanise to sthn eksodo(negative logic)
+	STA 3000H    ;Apothikeyse th nea twrinh katastash(antistrofh thw prohgumenhs)
+	MOV M,A      ;sth thesi 0900H
+	POP H        ;Etsi eptiygxanetai to anama/sbhsimo twn LEDse kathe klhsh 
+	POP D        ;ths blinking
+	POP B
+	POP PSW
+	RET
+END

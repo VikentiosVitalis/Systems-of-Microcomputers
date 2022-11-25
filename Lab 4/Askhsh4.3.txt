@@ -1,0 +1,49 @@
+#include <avr/io.h>
+unsigned char x; 						//Δήλωση απρόσημου χαρακτήρα 
+ 
+int main(void) {
+	DDRA = 0xff;    					// portA Έξοδος
+	DDRC = 0x00;    					// portC Είσοδος
+     
+	x = 1; 							// Αρχικοποίηση μεταβλητής για αρχικά αναμμένο led
+
+	
+	while(1) {
+		if ((PINC & 0x01) == 1) {
+								// Χρήση πρώτου push-button
+			while ((PINC & 0x01) == 1) {} 		// Έλεγχος επαναφοράς push-button
+			if(x == 0x80) {	 			// Έλεγχος υπεχείλισης
+				x = 0x01; 			// Hex 01 = Decimal 1
+			}
+			else {
+				x = x << 1;			 // Ολίσθηση αριστερά
+			}
+		}
+
+		if ((PINC & 0x02) == 2){			
+								// Χρήση δευτέρου push-button 
+			while ((PINC & 0x02) == 2) {} 		// Έλεγχος επαναφοράς push-button
+			if(x == 0x01) { 			// Έλεγχος υπεχείλισης
+				x = 0x80; 			// Hex 80 = Decimal 128
+			}
+			else {
+				x = x >> 1; 			// Ολίσθηση δεξιά
+			}
+		}
+
+		if ((PINC & 0x04) == 4){
+								// Χρήση τρίτου push-button   
+			while ((PINC & 0x04) == 4) {} 		// Έλεγχος επαναφοράς push-button 
+			x = 0x80; 				// Hex 80 = Decimal 128
+		}
+
+		if ((PINC & 0x08) == 8){
+								// Χρήση τέταρτου push-button
+			while ((PINC & 0x08) == 8) {} 		// Έλεγχος επαναφοράς push-button
+			x = 0x01; 
+		}
+
+		PORTA = x; 					// Έξοδος σε PORTA
+	}
+	return 0;   
+}
